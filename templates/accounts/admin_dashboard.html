@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+    <main class="mx-auto max-w-7xl p-6 lg:p-10">
+        <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold">Dashboard Administrativa</h1>
+                <p class="text-sm text-slate-600">Visao geral da receita, conversao e retencao da plataforma.</p>
+            </div>
+            <a
+                href="{% url 'accounts:dashboard' %}"
+                class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            >
+                Voltar para app
+            </a>
+        </header>
+
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">MRR</p>
+                <p class="mt-1 text-2xl font-semibold">R$ {{ mrr|floatformat:2 }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Usuarios ativos</p>
+                <p class="mt-1 text-2xl font-semibold">{{ active_users }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Usuarios cadastrados</p>
+                <p class="mt-1 text-2xl font-semibold">{{ total_users }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Usuarios com plano</p>
+                <p class="mt-1 text-2xl font-semibold">{{ users_with_plan }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Taxa conversao cadastro → plano</p>
+                <p class="mt-1 text-2xl font-semibold">{{ conversion_to_plan_rate|floatformat:2 }}%</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Taxa conversao cadastro → ativo</p>
+                <p class="mt-1 text-2xl font-semibold">{{ active_conversion_rate|floatformat:2 }}%</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Assinaturas canceladas</p>
+                <p class="mt-1 text-2xl font-semibold">{{ cancelled_users }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Cadastros ultimos 30 dias</p>
+                <p class="mt-1 text-2xl font-semibold">{{ registered_last_30_days }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Cancelamentos ultimos 30 dias</p>
+                <p class="mt-1 text-2xl font-semibold">{{ cancelled_last_30_days }}</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Churn geral</p>
+                <p class="mt-1 text-2xl font-semibold">{{ churn_rate|floatformat:2 }}%</p>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Churn 30 dias</p>
+                <p class="mt-1 text-2xl font-semibold">{{ churn_30_days_rate|floatformat:2 }}%</p>
+            </article>
+        </section>
+
+        <section class="mt-8 grid gap-6 lg:grid-cols-3">
+            <article class="rounded-xl bg-white p-5 shadow-sm lg:col-span-2">
+                <h2 class="mb-4 text-lg font-semibold">MRR e usuarios ativos por plano</h2>
+                <div class="h-72">
+                    <canvas id="plansChart"></canvas>
+                </div>
+            </article>
+            <article class="rounded-xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-semibold">Distribuicao da base</h2>
+                <div class="h-72">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </article>
+        </section>
+
+        <section class="mt-6 rounded-xl bg-white p-5 shadow-sm">
+            <h2 class="mb-4 text-lg font-semibold">Evolucao mensal</h2>
+            <p class="mb-4 text-xs text-slate-500">Novos planos/cancelamentos usam data da ultima atualizacao da assinatura.</p>
+            <div class="h-80">
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const chartLabels = {{ chart_labels_json|safe }};
+        const chartUsers = {{ chart_users_json|safe }};
+        const chartMrr = {{ chart_mrr_json|safe }};
+        const statusLabels = {{ status_labels_json|safe }};
+        const statusValues = {{ status_values_json|safe }};
+        const timelineLabels = {{ timeline_labels_json|safe }};
+        const timelineRegistrations = {{ timeline_registrations_json|safe }};
+        const timelineNewPaid = {{ timeline_new_paid_json|safe }};
+        const timelineCancellations = {{ timeline_cancellations_json|safe }};
+        const brlFormat = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+        const ctx = document.getElementById("plansChart");
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: chartLabels,
+                datasets: [
+                    {
+                        label: "Usuarios ativos",
+                        data: chartUsers,
+                        yAxisID: "yUsers",
+                        backgroundColor: "rgba(59, 130, 246, 0.8)",
+                        borderRadius: 6,
+                    },
+                    {
+                        label: "MRR (R$)",
+                        data: chartMrr,
+                        yAxisID: "yMrr",
+                        backgroundColor: "rgba(16, 185, 129, 0.8)",
+                        borderRadius: 6,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const label = context.dataset.label || "";
+                                if (context.dataset.yAxisID === "yMrr") {
+                                    return `${label}: ${brlFormat.format(context.parsed.y)}`;
+                                }
+                                return `${label}: ${context.parsed.y}`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    yUsers: {
+                        type: "linear",
+                        position: "left",
+                        beginAtZero: true,
+                    },
+                    yMrr: {
+                        type: "linear",
+                        position: "right",
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: (value) => brlFormat.format(value),
+                        },
+                    },
+                },
+            },
+        });
+
+        const statusCtx = document.getElementById("statusChart");
+        new Chart(statusCtx, {
+            type: "doughnut",
+            data: {
+                labels: statusLabels,
+                datasets: [
+                    {
+                        data: statusValues,
+                        backgroundColor: ["#10b981", "#ef4444", "#94a3b8"],
+                        borderWidth: 0,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                    },
+                },
+            },
+        });
+
+        const timelineCtx = document.getElementById("timelineChart");
+        new Chart(timelineCtx, {
+            type: "line",
+            data: {
+                labels: timelineLabels,
+                datasets: [
+                    {
+                        label: "Cadastros",
+                        data: timelineRegistrations,
+                        borderColor: "#3b82f6",
+                        backgroundColor: "rgba(59, 130, 246, 0.15)",
+                        fill: true,
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Novos planos ativos",
+                        data: timelineNewPaid,
+                        borderColor: "#10b981",
+                        backgroundColor: "rgba(16, 185, 129, 0.15)",
+                        fill: true,
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Cancelamentos",
+                        data: timelineCancellations,
+                        borderColor: "#ef4444",
+                        backgroundColor: "rgba(239, 68, 68, 0.15)",
+                        fill: true,
+                        tension: 0.3,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    </script>
+</body>
+</html>
+
+

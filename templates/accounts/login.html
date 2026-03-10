@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-2xl font-bold">Entrar</h1>
+<p class="mb-6 text-sm text-slate-500">Acesse sua conta usando seu e-mail.</p>
+
+<form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div>
+        <label class="mb-1 block text-sm font-medium" for="{{ form.email.id_for_label }}">E-mail</label>
+        <input
+            type="email"
+            name="{{ form.email.name }}"
+            id="{{ form.email.id_for_label }}"
+            value="{{ form.email.value|default:'' }}"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-400 focus:ring"
+            required
+        >
+    </div>
+
+    <div>
+        <label class="mb-1 block text-sm font-medium" for="{{ form.password.id_for_label }}">Senha</label>
+        <input
+            type="password"
+            name="{{ form.password.name }}"
+            id="{{ form.password.id_for_label }}"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-400 focus:ring"
+            required
+        >
+    </div>
+
+    <button class="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700">
+        Entrar
+    </button>
+</form>
+
+<p class="mt-6 text-sm text-slate-600">
+    Ainda nao tem conta?
+    <a class="font-medium text-blue-600 hover:underline" href="{% url 'accounts:register' %}">Cadastre-se</a>
+</p>
+
+<p class="mt-2 text-sm text-slate-600">
+    Esqueceu a senha?
+    <a class="font-medium text-blue-600 hover:underline" href="{% url 'accounts:password_reset' %}">Recuperar senha</a>
+</p>
+{% endblock %}
+

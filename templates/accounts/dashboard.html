@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-2xl font-bold">Dashboard</h1>
+<p class="mb-6 text-sm text-slate-600">
+    Voce esta autenticado como
+    <span class="font-semibold">{{ request.user.email }}</span>.
+</p>
+
+<div class="rounded-md bg-slate-50 p-4 text-sm text-slate-700">
+    App de autenticacao pronto com login e cadastro por e-mail.
+</div>
+
+<a
+    href="{% url 'accounts:logout' %}"
+    class="mt-6 inline-block rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+>
+    Sair
+</a>
+{% endblock %}
+

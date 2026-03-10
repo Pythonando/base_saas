@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Escolha seu plano{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-2xl font-bold">Escolha seu plano</h1>
+<p class="mb-4 text-sm text-slate-600">
+    Seu acesso esta sem plano ativo. Assim que o pagamento for confirmado pela Zouti,
+    seu plano Standard sera ativado automaticamente.
+</p>
+
+<div class="rounded-md bg-slate-50 p-4 text-sm text-slate-700">
+    Se voce ja pagou, aguarde alguns segundos e atualize a pagina.
+</div>
+
+<a
+    href="{% url 'accounts:dashboard' %}"
+    class="mt-6 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+>
+    Tentar acessar dashboard novamente
+</a>
+{% endblock %}
+

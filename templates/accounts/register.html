@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-2xl font-bold">Criar conta</h1>
+<p class="mb-6 text-sm text-slate-500">Cadastre-se com e-mail e senha.</p>
+
+<form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div>
+        <label class="mb-1 block text-sm font-medium" for="{{ form.email.id_for_label }}">E-mail</label>
+        <input
+            type="email"
+            name="{{ form.email.name }}"
+            id="{{ form.email.id_for_label }}"
+            value="{{ form.email.value|default:'' }}"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-400 focus:ring"
+            required
+        >
+        {% for error in form.email.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        <label class="mb-1 block text-sm font-medium" for="{{ form.password1.id_for_label }}">Senha</label>
+        <input
+            type="password"
+            name="{{ form.password1.name }}"
+            id="{{ form.password1.id_for_label }}"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-400 focus:ring"
+            required
+        >
+        {% for error in form.password1.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        <label class="mb-1 block text-sm font-medium" for="{{ form.password2.id_for_label }}">Confirmacao de senha</label>
+        <input
+            type="password"
+            name="{{ form.password2.name }}"
+            id="{{ form.password2.id_for_label }}"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-400 focus:ring"
+            required
+        >
+        {% for error in form.password2.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <button class="w-full rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
+        Criar conta
+    </button>
+</form>
+
+<p class="mt-6 text-sm text-slate-600">
+    Ja possui conta?
+    <a class="font-medium text-blue-600 hover:underline" href="{% url 'accounts:login' %}">Entrar</a>
+</p>
+{% endblock %}
+
