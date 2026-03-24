@@ -15,7 +15,6 @@ from plans.models import UserPlan
 from .forms import LoginForm, RegisterForm
 from .models import User
 
-
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("accounts:dashboard")

@@ -4,7 +4,7 @@ import importlib.util
 import os
 from pathlib import Path
 from decouple import config
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -13,10 +13,10 @@ LOG_DIR.mkdir(exist_ok=True)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me-in-production")
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",") if host]
-
+SECRET_KEY = 'django-insecure-069=w%%ihcq28f8t5rr)!w2b9l1j+lbj@d$u5ns7lt3d7t##x0'
+DEBUG = config('DEBUG', cast=bool)
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
 
 # Application definition
 
@@ -35,6 +35,9 @@ HAS_WHITENOISE = importlib.util.find_spec("whitenoise") is not None
 HAS_DEBUG_TOOLBAR = importlib.util.find_spec("debug_toolbar") is not None
 HAS_DJANGO_Q = importlib.util.find_spec("django_q") is not None
 
+if DEBUG:
+    INSTALLED_APPS.append("whitenoise.runserver_nostatic")
+
 if HAS_DEBUG_TOOLBAR:
     INSTALLED_APPS.append("debug_toolbar")
 if HAS_DJANGO_Q:
@@ -49,6 +52,7 @@ if HAS_WHITENOISE:
 
 MIDDLEWARE += [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -133,11 +137,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    if HAS_WHITENOISE
-    else "django.contrib.staticfiles.storage.StaticFilesStorage"
-)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

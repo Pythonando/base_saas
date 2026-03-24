@@ -5,8 +5,7 @@ from django.urls import resolve, reverse
 
 _blocked_urls_set = frozenset(
     (
-        "dashboard",
-        
+        "dashboard", 
     )
 )
 def plan_access_control(get_response):

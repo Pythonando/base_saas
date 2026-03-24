@@ -68,7 +68,6 @@ class ZoutiWebhookView(View):
 
         if created and status == UserPlan.STATUS_ACTIVE:
             try:
-                print('1')
                 send_mail_sendpulse(
                     "Acesso liberado | Plano Standard",
                     "email/subscription_confirmed.html",
